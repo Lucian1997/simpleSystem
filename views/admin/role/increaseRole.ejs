@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>添加角色页面</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/weadmin.css">
+    <!-- 让IE8/9支持媒体查询，从而兼容栅格 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+<div class="weadmin-body">
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <label for="username" class="layui-form-label">
+                <span class="we-red">*</span>角色名称
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" id="role_name" name="role_name" required="" lay-verify="required"
+                       autocomplete="off" value="" class="layui-input">
+            </div>
+            <div class="layui-form-mid layui-word-aux">
+                <!--                <span class="we-red">*</span>将会成为您唯一的登入名-->
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="mobile" class="layui-form-label">
+                角色描述
+            </label>
+            <div class="layui-input-inline">
+                <input type="text" value="" id="desc" name="desc"  autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="mobile" class="layui-form-label">
+                角色权限
+            </label>
+            <div class="layui-input-block">
+                <div id="auth"></div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label for="L_repass" class="layui-form-label">
+            </label>
+            <button class="layui-btn layui-btn-sm" lay-filter="add" lay-submit="">
+                <i class="layui-icon">&#xe642;</i>添加
+            </button>
+        </div>
+    </form>
+</div>
+<script src="/lib/layui/layui.js" charset="utf-8"></script>
+<script type="text/javascript">
+  layui.extend({
+    admin: '{/}../../../public/static/js/admin'
+  });
+  let form = layui.form,
+    admin = layui.admin,
+    layer = layui.layer,
+    upload = layui.upload,
+    $ = layui.jquery,
+    transfer = layui.transfer
+
+  //监听提交
+  form.on('submit(add)', function (data) {
+    let auth = transfer.getData('selectedAuth')
+    let sendData = {
+      role_name: data.field.role_name,
+      desc: data.field.desc,
+      auth: auth
+    }
+    $.ajax({
+      url: '/admin/role/increaseRole',
+      method: 'post',
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify(sendData)
+    }).then( res => {
+      layer.alert(res.msg || '添加角色失败', {icon: res.msg ? 6 : 5}, function () {
+        // 获得frame索引
+        let index = parent.layer.getFrameIndex(window.name);
+        //关闭当前frame
+        parent.layer.close(index);
+      });
+    })
+    return false;
+  });
+
+  //穿梭框
+  //通过ajax获取数据后进行渲染
+  $.ajax({
+    url: "/admin/auth/api/allAuthList",
+    method: 'get'
+  }).then(res => {
+    let arr = []
+    if (res.code === 0) {
+      res.data.forEach(item => {
+        arr.push({
+          value: item.id,
+          title: item.auth_name,
+          disabled: '',
+          checked: ''
+        })
+      })
+    }
+    //渲染
+    transfer.render({
+      elem: '#auth'  //绑定元素
+      ,title:["所有权限",'拥有权限'],
+      data: arr
+      ,id: 'selectedAuth' //定义索引
+    });
+  })
+</script>
+</body>
+
+</html>
